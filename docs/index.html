@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2択の記録用ページ</title>
+    <title>命名の記録用ページ</title>
     <link rel="stylesheet" href="default.css">
 </head>
 <body>
     <h1>物の受容的命名</h1>
-
     <form id="checkboxForm">
         <label><input type="checkbox" value="電車" checked>電車</label> 
         <label><input type="checkbox" value="コップ" checked>コップ</label>
@@ -37,27 +36,24 @@
         <label><input type="checkbox" value="がおー" checked>がおー</label>          
         <label><input type="checkbox" value="ぱおーん" checked>ぱおーん</label>                       
         <label><input type="checkbox" value="ちょきちょき" checked>ちょきちょき</label> 
-        <label><input type="checkbox" value="ぺんぎん" checked>ぺんぎん</label>         
         <label><input type="checkbox" value="もーもー" checked>もーもー</label>     
+        <label><input type="checkbox" value="スプーン" checked>スプーン</label>             
+        <label><input type="checkbox" value="救急車" checked>救急車</label>                     
     </form>
     <br>
+
     <form id="selectForm">
-        <label for="numberSelect">2択の数</label>
-        <select id="binaryNum">
-            <option value="5" selected>5</option>            
-            <option value="10" selected>10</option>
-            <option value="20">20</option>
-            <option value="30">30</option>
-            <option value="40">40</option>
-            <option value="50">50</option>
-            <option value="60">60</option>            
-            <option value="70">70</option>            
-            <option value="80">80</option>                        
+        <label for="numberSelect">択数</label>
+        <select id="choiceCount">
+            <option value="2" selected>2</option>            
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
         </select>
-    </form>
+    </form>    
     <form id="selectForm">
-        <label for="numberSelect">試行回数</label>
-        <select id="trialNum">
+        <label for="numberSelect">レップ数</label>
+        <select id="repetitionCount">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -70,10 +66,23 @@
             <option value="10">10</option>                                                            
         </select>
     </form>
-
+    <form id="selectForm">
+        <label for="numberSelect">セット数</label>
+        <select id="setCount">
+            <option value="5">5</option>            
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
+            <option value="40">40</option>
+            <option value="50">50</option>
+            <option value="60">60</option>            
+            <option value="70">70</option>            
+            <option value="80">80</option>                     
+        </select>
+    </form>
 
     <hr>
-    <button id="getChecked">チェックした物で課題を生成する</button>
+    <button id="generateTaskButton">チェックした物で課題を生成する</button>
 
     <div id="dist"></div>
 
@@ -82,6 +91,6 @@
     <hr>
     <div id="output"></div>
     <button id="copyButton">クリップボードにコピー</button>
-    <script src="test2.js"></script>
+    <script src="taskGenerator.js"></script>
 </body>
 </html>
