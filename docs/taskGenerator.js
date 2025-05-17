@@ -211,8 +211,16 @@ function generateTask(selectedItems, choiceCount, repetitionCount, setCount) {
 
     for (let s = 0; s < setCount; s++) {
 
-        // 利用回数の少ない順にソート（できるだけ均等に使うため）
-        let sortedItems = [...localItemBins.entries()].sort((a, b) => a[1] - b[1]).map(entry => entry[0]);
+        // 同じ使用回数のときにランダム化
+        let sortedItems = [...localItemBins.entries()]
+        .map(entry => ({ key: entry[0], value: entry[1], rand: Math.random() }))
+        .sort((a, b) => {
+            if (a.value === b.value) {
+                return a.rand - b.rand;
+            }
+            return a.value - b.value;
+        })
+        .map(entry => entry.key);
 
         // 上位 N 個を抽出（必要な choiceCount 個）
         let topEntries = sortedItems.slice(0, choiceCount);
@@ -231,7 +239,7 @@ function generateTask(selectedItems, choiceCount, repetitionCount, setCount) {
         // 各 repetition に対して、1つずつ問題を選ぶ
         let questions = [];
         for (let r = 0; r < repetitionCount; r++) {
-            let q = weightedRandomChoiceFair(topEntries, usageCounts);
+            let q = weightedRandomChoiceBalanced(topEntries, usageCounts);
             questions.push(q);
             usageCounts[q]++;
         }
