@@ -4,6 +4,17 @@ const result = [...Array(100)].map((_, i) => ["", "", "", -1, ""]);
 const answerLog = new Map();
 
 
+// アクティブ状態を設定する関数
+function setActiveButton(activeButton, inactiveButton) {
+    // アクティブボタンにクラスを追加
+    activeButton.classList.add("active");
+
+    // 非アクティブボタンからクラスを削除
+    inactiveButton.classList.remove("active");
+}
+
+
+
 // ---------------------------------------------------
 // AnswerLogを処理して統計情報を生成する関数
 // ---------------------------------------------------
