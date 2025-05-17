@@ -3,12 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>五十音ボタン</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    body {
+      font-family: sans-serif;
+      padding: 10px;
+    }
+    #button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .kana-row {
+      display: flex;
+      flex-wrap: wrap;
+    }
     .kana-button {
-      width: 40px;
+      flex: 1 0 16%;
+      min-width: 40px;
       height: 40px;
       margin: 2px;
-      font-size: 18px;
+      font-size: 5vw;
+      max-width: 60px;
     }
     .yellow {
       background-color: yellow;
@@ -16,17 +33,23 @@
     .green {
       background-color: lightgreen;
     }
+    #output {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 4vw;
+    }
     #copy-button {
       margin-top: 10px;
-      padding: 6px 12px;
-      font-size: 16px;
+      padding: 10px;
+      font-size: 4vw;
+      width: 100%;
     }
   </style>
 </head>
 <body>
   <div id="button-container"></div>
   <br>
-  <textarea id="output" rows="20" cols="50" readonly></textarea>
+  <textarea id="output" rows="20" readonly></textarea>
   <br>
   <button id="copy-button">クリップボードにコピー</button>
 
@@ -56,11 +79,13 @@
 
     kanaRows.forEach(row => {
       const rowDiv = document.createElement("div");
+      rowDiv.className = "kana-row";
       row.forEach(kana => {
         if (kana === "") {
           const spacer = document.createElement("span");
           spacer.style.display = "inline-block";
           spacer.style.width = "44px";
+          spacer.style.height = "40px";
           rowDiv.appendChild(spacer);
           return;
         }
