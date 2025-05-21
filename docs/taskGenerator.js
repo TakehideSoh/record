@@ -19,7 +19,7 @@ function setActiveButton(activeButton, inactiveButton) {
 // AnswerLogを処理して統計情報を生成する関数
 // ---------------------------------------------------
 function processAnswerLog(answerLog) {
-    const sets = new Map(); // setIndex -> [{ item, isCorrect }]
+    const sets = new Map(); // setIndex -> { choices, records: [{ item, isCorrect }] }
     const itemStats = new Map(); // item -> { correct, total }
 
     let totalCorrect = 0;
@@ -29,8 +29,12 @@ function processAnswerLog(answerLog) {
         const { set, choices, question, isCorrect } = entry;
         const item = choices[question];
 
-        if (!sets.has(set)) sets.set(set, []);
-        sets.get(set).push({ item, isCorrect });
+        // セット内の choices を1回だけ保存
+        if (!sets.has(set)) {
+            sets.set(set, { choices: choices, records: [] });
+        }
+
+        sets.get(set).records.push({ item, isCorrect });
 
         if (!itemStats.has(item)) itemStats.set(item, { correct: 0, total: 0 });
         const stats = itemStats.get(item);
@@ -74,8 +78,9 @@ function generateSectionPerItem(itemStats) {
 function generateSectionPerSet(sets) {
     let lines = [];
 
-    for (const [setIndex, records] of sets.entries()) {
-        const uniqueItems = [...new Set(records.map(r => r.item))];
+    for (const [setIndex, { choices, records }] of sets.entries()) {
+        const uniqueItems = choices; // 順番を保った元の choices
+
         const itemPair = uniqueItems.join(" vs ");
         const correctCount = records.filter(r => r.isCorrect).length;
         const totalCount = records.length;
