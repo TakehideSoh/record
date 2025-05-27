@@ -381,24 +381,18 @@ document.getElementById('generateTaskButton').addEventListener('click', function
 
     answerLog.clear();
 
-    // 選択されたアイテムを取得する
-    //const checkboxes = document.querySelectorAll('#checkboxForm input[type="checkbox"]');
-    //const selectedItems = Array.from(checkboxes)
-//        .filter(checkbox => checkbox.checked)
-//        .map(checkbox => checkbox.value);
-
-const visibleGroup = Array.from(document.querySelectorAll('#checkboxForm .checkbox-group'))
-    .find(group => group.style.display !== 'none');
-
-const checkboxes = visibleGroup.querySelectorAll('input[type="checkbox"]');
-const selectedItems = Array.from(checkboxes)
-    .filter(checkbox => checkbox.checked)
-    .map(checkbox => checkbox.value);        
-
     // 択数，レップ数，セット数を取得する
     let choiceCount = document.getElementById('choiceCount').value;
     let repetitionCount = document.getElementById('repetitionCount').value;
     let setCount = document.getElementById('setCount').value;
+
+    // 
+    const visibleGroup = document.getElementById(currentVisibleGroupId);
+    const checkboxes = visibleGroup.querySelectorAll('input[type="checkbox"]');
+    return Array.from(checkboxes)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
+        
 
     // 課題結果のテキストエリアをクリアする
     document.getElementById("output").innerHTML = "";
@@ -438,22 +432,35 @@ document.getElementById("copyButton").addEventListener("click", () => {
 // ---------------------------------------------------
 // コピーボタン
 // ---------------------------------------------------
+let currentVisibleGroupId = 'group1'; // 初期表示グループ
 
 function showGroup(groupId) {
-    // グループの表示切替
     document.querySelectorAll('.checkbox-group').forEach(group => {
         group.style.display = (group.id === groupId) ? 'block' : 'none';
     });
 
-    // ボタンの active クラス更新
     document.querySelectorAll('.group-button').forEach(button => {
-        if (button.dataset.group === groupId) {
-            button.classList.add('active');
-        } else {
-            button.classList.remove('active');
-        }
+        button.classList.toggle('active', button.dataset.group === groupId);
     });
+
+    currentVisibleGroupId = groupId;
 }
+
+// function showGroup(groupId) {
+//     // グループの表示切替
+//     document.querySelectorAll('.checkbox-group').forEach(group => {
+//         group.style.display = (group.id === groupId) ? 'block' : 'none';
+//     });
+
+//     // ボタンの active クラス更新
+//     document.querySelectorAll('.group-button').forEach(button => {
+//         if (button.dataset.group === groupId) {
+//             button.classList.add('active');
+//         } else {
+//             button.classList.remove('active');
+//         }
+//     });
+// }
 
 // function showGroup(groupId) {
 //     const groups = document.querySelectorAll('.checkbox-group');
