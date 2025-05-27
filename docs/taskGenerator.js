@@ -218,14 +218,14 @@ function generateTask(selectedItems, choiceCount, repetitionCount, setCount) {
 
         // 同じ使用回数のときにランダム化
         let sortedItems = [...localItemBins.entries()]
-        .map(entry => ({ key: entry[0], value: entry[1], rand: Math.random() }))
-        .sort((a, b) => {
-            if (a.value === b.value) {
-                return a.rand - b.rand;
-            }
-            return a.value - b.value;
-        })
-        .map(entry => entry.key);
+            .map(entry => ({ key: entry[0], value: entry[1], rand: Math.random() }))
+            .sort((a, b) => {
+                if (a.value === b.value) {
+                    return a.rand - b.rand;
+                }
+                return a.value - b.value;
+            })
+            .map(entry => entry.key);
 
         // 上位 N 個を抽出（必要な choiceCount 個）
         let topEntries = sortedItems.slice(0, choiceCount);
@@ -324,9 +324,9 @@ function createQuestionContent(choices, question, setIndex, repetitionIndex, rep
 
     questionDiv.appendChild(questionText);
 
-    const scroll_length = (repetitionIndex === repetitionCount-1) ? 177 : 100;
+    const scroll_length = (repetitionIndex === repetitionCount - 1) ? 177 : 100;
 
-    let buttons = createYesNoButton(scroll_length, questionText, choices, question, setIndex, repetitionIndex, repetitionCount); 
+    let buttons = createYesNoButton(scroll_length, questionText, choices, question, setIndex, repetitionIndex, repetitionCount);
 
     questionDiv.appendChild(buttons);
 
@@ -347,7 +347,7 @@ function createTaskContent(selectedItems, choiceCount, repetitionCount, setCount
     let counter = 0;
 
     let setIndex = 0;
-    
+
 
     tasks.forEach(task => {
 
@@ -379,13 +379,21 @@ function createTaskContent(selectedItems, choiceCount, repetitionCount, setCount
 // ---------------------------------------------------
 document.getElementById('generateTaskButton').addEventListener('click', function () {
 
-    answerLog.clear(); 
+    answerLog.clear();
 
     // 選択されたアイテムを取得する
-    const checkboxes = document.querySelectorAll('#checkboxForm input[type="checkbox"]');
-    const selectedItems = Array.from(checkboxes)
-        .filter(checkbox => checkbox.checked)
-        .map(checkbox => checkbox.value);
+    //const checkboxes = document.querySelectorAll('#checkboxForm input[type="checkbox"]');
+    //const selectedItems = Array.from(checkboxes)
+//        .filter(checkbox => checkbox.checked)
+//        .map(checkbox => checkbox.value);
+
+const visibleGroup = Array.from(document.querySelectorAll('#checkboxForm .checkbox-group'))
+    .find(group => group.style.display !== 'none');
+
+const checkboxes = visibleGroup.querySelectorAll('input[type="checkbox"]');
+const selectedItems = Array.from(checkboxes)
+    .filter(checkbox => checkbox.checked)
+    .map(checkbox => checkbox.value);        
 
     // 択数，レップ数，セット数を取得する
     let choiceCount = document.getElementById('choiceCount').value;
@@ -426,3 +434,30 @@ document.getElementById("copyButton").addEventListener("click", () => {
         alert("コピーに失敗しました。");
     });
 });
+
+// ---------------------------------------------------
+// コピーボタン
+// ---------------------------------------------------
+
+function showGroup(groupId) {
+    // グループの表示切替
+    document.querySelectorAll('.checkbox-group').forEach(group => {
+        group.style.display = (group.id === groupId) ? 'block' : 'none';
+    });
+
+    // ボタンの active クラス更新
+    document.querySelectorAll('.group-button').forEach(button => {
+        if (button.dataset.group === groupId) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+}
+
+// function showGroup(groupId) {
+//     const groups = document.querySelectorAll('.checkbox-group');
+//     groups.forEach(group => {
+//         group.style.display = (group.id === groupId) ? 'block' : 'none';
+//     });
+// }

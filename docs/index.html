@@ -7,8 +7,21 @@
     <link rel="stylesheet" href="default.css">
 </head>
 <body>
-    <h1>物の受容的命名</h1>
+    <h1>受容的命名</h1>
+
+
+    <!-- グループ切り替えボタン -->
+    <div>
+        <button type="button" class="group-button active" data-group="group1" onclick="showGroup('group1')">物の命名</button>
+        <button type="button" class="group-button" data-group="group2" onclick="showGroup('group2')">数の命名</button>
+        <button type="button" class="group-button" data-group="group3" onclick="showGroup('group3')">人の命名</button>
+        <button type="button" class="group-button" data-group="group4" onclick="showGroup('group4')">ひらがなの命名</button>        
+    </div>
+
+
+
     <form id="checkboxForm">
+        <div id="group1" class="checkbox-group" style="display: block;">
         <label><input type="checkbox" value="電車" checked>電車</label> 
         <label><input type="checkbox" value="コップ" checked>コップ</label>
         <label><input type="checkbox" value="歯ブラシ" checked>歯ブラシ</label>
@@ -16,7 +29,7 @@
         <label><input type="checkbox" value="ショーン">ショーン</label>
         <label><input type="checkbox" value="サイ">サイ</label>
         <label><input type="checkbox" value="フォーク" checked>フォーク</label>
-        <label><input type="checkbox" value="ヨーグルト" checked>ヨーグルト</label>
+        <label><input type="checkbox" value="ヨーグルト">ヨーグルト</label>
         <label><input type="checkbox" value="くつ">くつ</label>
         <label><input type="checkbox" value="バケツ">バケツ</label>
         <label><input type="checkbox" value="ビッツァー">ビッツァー</label>
@@ -37,8 +50,32 @@
         <label><input type="checkbox" value="ぱおーん" checked>ぱおーん</label>                       
         <label><input type="checkbox" value="ちょきちょき" checked>ちょきちょき</label> 
         <label><input type="checkbox" value="もーもー" checked>もーもー</label>     
-        <label><input type="checkbox" value="スプーン" checked>スプーン</label>             
+        <label><input type="checkbox" value="スプーン">スプーン</label>             
         <label><input type="checkbox" value="救急車" checked>救急車</label>                     
+        <label><input type="checkbox" value="めぇー" checked>めぇー</label>             
+        <label><input type="checkbox" value="うっほっほ" checked>うっほっほ</label>                     
+        </div>
+
+        <div id="group2" class="checkbox-group">
+            <label><input type="checkbox" value="いち" checked>いち</label>
+            <label><input type="checkbox" value="に" checked>に</label>
+            <label><input type="checkbox" value="さん" checked>さん</label>
+            <label><input type="checkbox" value="よん" checked>さん</label>            
+        </div>
+
+        <div id="group3" class="checkbox-group">
+            <label><input type="checkbox" value="まま" checked>まま</label>
+            <label><input type="checkbox" value="ねね" checked>ねね</label>
+            <label><input type="checkbox" value="ぱぱ" checked>ぱぱ</label>
+        </div>
+
+        <div id="group4" class="checkbox-group">
+            <label><input type="checkbox" value="あ" checked>あ</label>
+            <label><input type="checkbox" value="い" checked>い</label>
+            <label><input type="checkbox" value="う" checked>う</label>
+            <label><input type="checkbox" value="え" checked>え</label>            
+        </div>
+
     </form>
     <br>
 
