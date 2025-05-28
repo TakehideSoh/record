@@ -377,38 +377,63 @@ function createTaskContent(selectedItems, choiceCount, repetitionCount, setCount
 // ---------------------------------------------------
 // 「課題を生成する」ボタン
 // ---------------------------------------------------
+
 document.getElementById('generateTaskButton').addEventListener('click', function () {
 
     answerLog.clear();
 
     // 択数，レップ数，セット数を取得する
-    let choiceCount = document.getElementById('choiceCount').value;
-    let repetitionCount = document.getElementById('repetitionCount').value;
-    let setCount = document.getElementById('setCount').value;
+    let choiceCount = parseInt(document.getElementById('choiceCount').value);
+    let repetitionCount = parseInt(document.getElementById('repetitionCount').value);
+    let setCount = parseInt(document.getElementById('setCount').value);
 
-    // 
+    // 表示中のグループからチェックされている値だけ取得
     const visibleGroup = document.getElementById(currentVisibleGroupId);
     const checkboxes = visibleGroup.querySelectorAll('input[type="checkbox"]');
-    return Array.from(checkboxes)
+    const selectedItems = Array.from(checkboxes)
         .filter(checkbox => checkbox.checked)
         .map(checkbox => checkbox.value);
-        
 
     // 課題結果のテキストエリアをクリアする
     document.getElementById("output").innerHTML = "";
 
     // 課題を生成する関数を呼び出す
-    // displayQuestions(selectedItems, choiceCount, repetitionCount, setCount);
-
-    // console.log("CHECK",selectedItems, choiceCount, repetitionCount, setCount);
-
-    let result = generateTask(selectedItems, choiceCount, repetitionCount, setCount);
-
     createTaskContent(selectedItems, choiceCount, repetitionCount, setCount);
-
-    console.log(result);
-
 });
+
+
+// document.getElementById('generateTaskButton').addEventListener('click', function () {
+
+//     answerLog.clear();
+
+//     // 択数，レップ数，セット数を取得する
+//     let choiceCount = document.getElementById('choiceCount').value;
+//     let repetitionCount = document.getElementById('repetitionCount').value;
+//     let setCount = document.getElementById('setCount').value;
+
+//     // 
+//     const visibleGroup = document.getElementById(currentVisibleGroupId);
+//     const checkboxes = visibleGroup.querySelectorAll('input[type="checkbox"]');
+//     return Array.from(checkboxes)
+//         .filter(checkbox => checkbox.checked)
+//         .map(checkbox => checkbox.value);
+        
+
+//     // 課題結果のテキストエリアをクリアする
+//     document.getElementById("output").innerHTML = "";
+
+//     // 課題を生成する関数を呼び出す
+//     // displayQuestions(selectedItems, choiceCount, repetitionCount, setCount);
+
+//     // console.log("CHECK",selectedItems, choiceCount, repetitionCount, setCount);
+
+//     let result = generateTask(selectedItems, choiceCount, repetitionCount, setCount);
+
+//     createTaskContent(selectedItems, choiceCount, repetitionCount, setCount);
+
+//     console.log(result);
+
+// });
 
 
 // ---------------------------------------------------
@@ -446,25 +471,8 @@ function showGroup(groupId) {
     currentVisibleGroupId = groupId;
 }
 
-// function showGroup(groupId) {
-//     // グループの表示切替
-//     document.querySelectorAll('.checkbox-group').forEach(group => {
-//         group.style.display = (group.id === groupId) ? 'block' : 'none';
-//     });
 
-//     // ボタンの active クラス更新
-//     document.querySelectorAll('.group-button').forEach(button => {
-//         if (button.dataset.group === groupId) {
-//             button.classList.add('active');
-//         } else {
-//             button.classList.remove('active');
-//         }
-//     });
-// }
-
-// function showGroup(groupId) {
-//     const groups = document.querySelectorAll('.checkbox-group');
-//     groups.forEach(group => {
-//         group.style.display = (group.id === groupId) ? 'block' : 'none';
-//     });
-// }
+// Safari対応のため、ロード時に明示的に初期グループを設定
+window.addEventListener("DOMContentLoaded", () => {
+    showGroup(currentVisibleGroupId);
+});
