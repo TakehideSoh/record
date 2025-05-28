@@ -9,24 +9,28 @@
 }
 
 .button:hover {
-    opacity: 0.9; /* ホバー時に少し暗くする */
+    opacity: 0.9;
+    /* ホバー時に少し暗くする */
 }
 
 /* 非アクティブ状態 */
 .button {
-    background-color: #ccc; /* グレー */
+    background-color: #ccc;
+    /* グレー */
     color: black;
 }
 
 /* Yesボタンアクティブ時 */
 .button.active:nth-child(1) {
-    background-color: #4CAF50; /* 緑色 */
+    background-color: #4CAF50;
+    /* 緑色 */
     color: white;
 }
 
 /* Noボタンアクティブ時 */
 .button.active:nth-child(2) {
-    background-color: #f44336; /* 赤色 */
+    background-color: #f44336;
+    /* 赤色 */
     color: white;
 }
 
@@ -35,7 +39,8 @@
     border: 1px solid #ccc;
     margin-bottom: 10px;
     font-size: 16px;
-    white-space: pre-wrap; /* 改行をそのまま表示 */
+    white-space: pre-wrap;
+    /* 改行をそのまま表示 */
 }
 
 #questions-container {
@@ -51,6 +56,34 @@ button {
     color: white;
     cursor: pointer;
 }
+
 button:hover {
     background-color: #45a049;
+}
+
+.checkbox-group {
+    display: none;
+    margin-top: 10px;
+}
+
+.checkbox-group {
+    display: none;
+    margin-top: 10px;
+}
+
+.group-button {
+    padding: 6px 12px;
+    margin-right: 5px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    color: #000;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.group-button.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border-color: #0056b3;
 }
