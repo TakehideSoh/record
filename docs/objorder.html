@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>obj × order 指示ジェネレータ（1画面・物/指示 選択・記録つき）</title>
+    <style>
+        :root {
+            --gap: 8px;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
+            margin: 24px;
+        }
+
+        h1 {
+            font-size: 18px;
+            margin: 0 0 12px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 900px) {
+            .row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .panel {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .panel h2 {
+            margin: 0 0 8px;
+            font-size: 16px;
+        }
+
+        .muted {
+            color: #555;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--gap);
+        }
+
+        button.item {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1.2;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+            transition: transform .02s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+        }
+
+        button.item:hover {
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+        }
+
+        button.item:active {
+            transform: translateY(1px);
+        }
+
+        button.item.state0 {
+            background: #ffffff;
+            border-color: #dddddd;
+        }
+
+        button.item.state1 {
+            background: #eef9ef;
+            border-color: #9fd2a3;
+        }
+
+        button.item.state2 {
+            background: #fff4e5;
+            border-color: #f0c36d;
+        }
+
+        .bar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 8px 0;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        #questions-container {
+            margin-top: 8px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .set {
+            padding: 10px 12px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+        }
+
+        .set>.title {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .instr {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border: 1px solid #f1f1f1;
+            border-radius: 8px;
+        }
+
+        .instr+.instr {
+            margin-top: 6px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .buttons .active {
+            outline: 2px solid #7cc;
+        }
+
+        .hr {
+            margin: 16px 0;
+            height: 1px;
+            background: #eee;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            border: 1px dashed #ccc;
+            padding: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>obj × order 指示ジェネレータ（1画面）</h1>
+
+    <div class="row">
+        <!-- 左：物（選択あり） -->
+        <section class="panel">
+            <h2>物（0→1→2→0）</h2>
+            <div class="muted">0=未選択／1=選択／2=強選択（強選択は抽出でやや優先）</div>
+            <div class="bar">
+                <button type="button" id="objAll0">全て0</button>
+                <button type="button" id="objAll1">全て1</button>
+                <button type="button" id="objAll2">全て2</button>
+            </div>
+            <div id="objGrid" class="grid" aria-live="polite"></div>
+        </section>
+
+        <!-- 右：指示（選択あり。ただし択数の対象外＝重みづけ用） -->
+        <section class="panel">
+            <h2>指示（0→1→2→0）</h2>
+            <div class="muted">0=未選択／1=選択／2=強選択（強選択はランダム選択でやや優先）。択数は物にのみ適用されます。</div>
+            <div class="bar">
+                <button type="button" id="ordAll0">全て0</button>
+                <button type="button" id="ordAll1">全て1</button>
+                <button type="button" id="ordAll2">全て2</button>
+            </div>
+            <div id="ordGrid" class="grid" aria-live="polite"></div>
+        </section>
+    </div>
+
+    <section class="panel">
+        <h2>設定</h2>
+        <div class="controls">
+            <div class="control">
+                <label for="selectCount">択数（物）</label>
+                <select id="selectCount">
+                    <option value="1" selected>1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+            </div>
+            <div class="control">
+                <label for="repCount">レップ数（各物）</label>
+                <select id="repCount">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6" selected>6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+            </div>
+            <div class="control">
+                <label for="setCount">セット数</label>
+                <select id="setCount">
+                    <option value="1">1</option>
+                    <option value="2" selected>2</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="bar">
+            <button id="generateButton" type="button">指示を生成する</button>
+            <button id="copyButton" type="button">集計をコピー</button>
+        </div>
+    </section>
+
+    <div id="questions-container"></div>
+    <div class="hr"></div>
+    <div id="output"></div>
+
+    <script>
+        // ====== データ（例） ======
+        const data = {
+            obj: [
+                { t: "電車", s: 1 },                 
+                { t: "バナナ", s: 1 }, 
+                { t: "コップ", s: 1 },
+            ],
+            order: [
+                { t: "指差して", s: 1 }, 
+                { t: "叩いて", s: 1 }, 
+                { t: "ふって", s: 1 }, 
+                { t: "ちょうだい", s: 1 }, 
+                { t: "なでなで", s: 1 }, 
+                { t: "持ってギュ", s: 1 },                
+                { t: "投げて", s: 1 },                                
+                { t: "食べて", s: 0 },                                                
+                { t: "まわして", s: 0 }, 
+                { t: "ひっくり返して", s: 0 },
+                { t: "入れて", s: 0 },                
+            ]
+        };
+
+        // ====== 3状態UI（共通） ======
+        function updateStateClass(btn, s) {
+            btn.classList.remove('state0', 'state1', 'state2');
+            btn.classList.add(`state${s}`);
+        }
+        function renderButtons(gridEl, list) {
+            gridEl.textContent = '';
+            list.forEach(o => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'item';
+                updateStateClass(btn, o.s ?? 0);
+                btn.textContent = o.t;
+                btn.addEventListener('click', () => {
+                    o.s = ((o.s ?? 0) + 1) % 3;
+                    updateStateClass(btn, o.s);
+                });
+                gridEl.appendChild(btn);
+            });
+        }
+        function setAllState(list, s) { list.forEach(o => o.s = s); }
+
+        // ====== 初期描画 ======
+        const objGrid = document.getElementById('objGrid');
+        const ordGrid = document.getElementById('ordGrid');
+        renderButtons(objGrid, data.obj);
+        renderButtons(ordGrid, data.order);
+
+        document.getElementById('objAll0').addEventListener('click', () => { setAllState(data.obj, 0); renderButtons(objGrid, data.obj); });
+        document.getElementById('objAll1').addEventListener('click', () => { setAllState(data.obj, 1); renderButtons(objGrid, data.obj); });
+        document.getElementById('objAll2').addEventListener('click', () => { setAllState(data.obj, 2); renderButtons(objGrid, data.obj); });
+
+        document.getElementById('ordAll0').addEventListener('click', () => { setAllState(data.order, 0); renderButtons(ordGrid, data.order); });
+        document.getElementById('ordAll1').addEventListener('click', () => { setAllState(data.order, 1); renderButtons(ordGrid, data.order); });
+        document.getElementById('ordAll2').addEventListener('click', () => { setAllState(data.order, 2); renderButtons(ordGrid, data.order); });
+
+        // ====== ユーティリティ ======
+        function shuffle(a) {
+            for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+            return a;
+        }
+        function pickKFairWithStrong(items, k, usageBins) {
+            // items: [{t,s}], usageBins: Map(name->count)
+            items.forEach(o => { if (!usageBins.has(o.t)) usageBins.set(o.t, 0); });
+            // 強選択をやや優先：use - bias（bias=0.5 if s=2）
+            const sorted = items
+                .map(o => ({ o, use: usageBins.get(o.t), bias: (o.s === 2 ? 0.5 : 0), rnd: Math.random() }))
+                .sort((a, b) => (a.use - a.bias) - (b.use - b.bias) || (b.o.s - a.o.s) || (a.rnd - b.rnd))
+                .map(x => x.o);
+            const picked = sorted.slice(0, Math.min(k, sorted.length));
+            picked.forEach(o => usageBins.set(o.t, usageBins.get(o.t) + 1));
+            return picked;
+        }
+        function randWeightedOrder(selectedOrders) {
+            // 強選択をやや優先（同率ならランダム）
+            const arr = selectedOrders
+                .map(o => ({ o, w: (o.s === 2 ? 2 : (o.s === 1 ? 1 : 0)) }))
+                .filter(x => x.w > 0);
+            if (arr.length === 0) return null;
+            const total = arr.reduce((s, x) => s + x.w, 0);
+            let r = Math.random() * total;
+            for (const x of arr) { if (r < x.w) return x.o; r -= x.w; }
+            return arr[arr.length - 1].o;
+        }
+
+        // ====== 記録（taskGenerator02 風） ======
+        const answerLog = new Map(); // key: seq -> { setIdx, obj, order, instruction, isCorrect }
+        function setActiveButton(active, inactive) { active.classList.add('active'); inactive.classList.remove('active'); }
+        function processAnswerLog(map) {
+            const perObject = new Map();  // obj -> {correct,total}
+            const perInstr = new Map();  // "電車たたいて" -> {correct,total}
+            let totalCorrect = 0, total = 0;
+            for (const v of map.values()) {
+                const { obj, instruction, isCorrect } = v;
+                if (!perObject.has(obj)) perObject.set(obj, { correct: 0, total: 0 });
+                if (!perInstr.has(instruction)) perInstr.set(instruction, { correct: 0, total: 0 });
+                const o = perObject.get(obj), i = perInstr.get(instruction);
+                o.total++; i.total++; total++;
+                if (isCorrect) { o.correct++; i.correct++; totalCorrect++; }
+            }
+            return { perObject, perInstr, totalCorrect, total };
+        }
+        function linesFromStats(map) {
+            const lines = [];
+            for (const [k, st] of map.entries()) {
+                const pct = st.total ? Math.round(100 * st.correct / st.total) : 0;
+                lines.push(`${k} ${st.correct}/${st.total} = ${pct}`);
+            }
+            return lines.join('\n');
+        }
+        function updateSummary() {
+            const { perObject, perInstr, totalCorrect, total } = processAnswerLog(answerLog);
+            const s1 = linesFromStats(perObject);
+            const s2 = linesFromStats(perInstr);
+            const s3 = `全体 ${totalCorrect}/${total} = ${total ? Math.round(100 * totalCorrect / total) : 0}`;
+            document.getElementById('output').textContent = `${s1}\n\n${s2}\n\n${s3}`;
+        }
+
+        // ====== 生成・描画 ======
+        function createYesNoButtons(seq, objName, instruction) {
+            const wrap = document.createElement('div');
+            wrap.className = 'buttons';
+            const yes = document.createElement('button'); yes.textContent = '正';
+            const no = document.createElement('button'); no.textContent = '誤';
+            yes.addEventListener('click', () => { answerLog.set(seq, { ...answerLog.get(seq), isCorrect: true }); setActiveButton(yes, no); updateSummary(); });
+            no.addEventListener('click', () => { answerLog.set(seq, { ...answerLog.get(seq), isCorrect: false }); setActiveButton(no, yes); updateSummary(); });
+            wrap.appendChild(yes); wrap.appendChild(no);
+            return wrap;
+        }
+
+        function generateAndRender() {
+            const selectCount = Number(document.getElementById('selectCount').value);
+            const repCount = Number(document.getElementById('repCount').value);
+            const setCount = Number(document.getElementById('setCount').value);
+
+            const selectedObjs = data.obj.filter(o => (o.s ?? 0) >= 1);
+            const selectedOrders = data.order.filter(o => (o.s ?? 0) >= 1);
+            if (selectedObjs.length < Math.max(1, selectCount)) { alert('物の選択が不足しています。'); return; }
+            if (selectedOrders.length === 0) { alert('指示が一つも選択されていません。'); return; }
+
+            const container = document.getElementById('questions-container');
+            container.textContent = '';
+            answerLog.clear();
+            document.getElementById('output').textContent = '';
+
+            const objBins = new Map(); // 抽出公平化
+            let seq = 0;
+
+            for (let s = 0; s < setCount; s++) {
+                const setBox = document.createElement('div');
+                setBox.className = 'set';
+                const title = document.createElement('div');
+                title.className = 'title';
+                title.textContent = `セット ${s + 1}`;
+                setBox.appendChild(title);
+
+                // 択数分だけ物を抽出（強選択をやや優先 & 使用回数で公平化）
+                const picks = pickKFairWithStrong(selectedObjs, selectCount, objBins);
+
+                // 各物に対して rep 回、ランダムな指示をつけて列挙
+                // rep 回、毎回 picks から obj をランダム抽出して指示を生成
+                let lastOrd = null;
+                let lastObj = null;
+
+                for (let r = 0; r < repCount; r++) {
+                    // --- obj を picks からランダムに選ぶ（同一連続を軽く回避） ---
+                    let obj = picks[Math.floor(Math.random() * picks.length)];
+                    let guardO = 0;
+                    while (lastObj && picks.length > 1 && obj.t === lastObj && guardO++ < 3) {
+                        obj = picks[Math.floor(Math.random() * picks.length)];
+                    }
+                    lastObj = obj.t;
+
+                    // --- order を重み付きで選ぶ（同一連続を軽く回避） ---
+                    let ord = randWeightedOrder(selectedOrders) || selectedOrders[Math.floor(Math.random() * selectedOrders.length)];
+                    let guard = 0;
+                    while (lastOrd && selectedOrders.length > 1 && ord.t === lastOrd && guard++ < 3) {
+                        ord = randWeightedOrder(selectedOrders) || selectedOrders[Math.floor(Math.random() * selectedOrders.length)];
+                    }
+                    lastOrd = ord.t;
+
+                    // --- 表示行を作成＆記録 ---
+                    const instruction = `${obj.t}${ord.t}`;
+                    const row = document.createElement('div');
+                    row.className = 'instr';
+
+                    const text = document.createElement('div');
+                    text.textContent = instruction;
+                    row.appendChild(text);
+
+                    answerLog.set(seq, { setIdx: s, obj: obj.t, order: ord.t, instruction, isCorrect: undefined });
+                    row.appendChild(createYesNoButtons(seq, obj.t, instruction));
+                    setBox.appendChild(row);
+
+                    seq++;
+                }
+
+                container.appendChild(setBox);
+            }
+        }
+
+        document.getElementById('generateButton').addEventListener('click', generateAndRender);
+        document.getElementById('copyButton').addEventListener('click', async () => {
+            const text = document.getElementById('output').innerText || '';
+            try { await navigator.clipboard.writeText(text); alert('コピーしました。'); }
+            catch (e) { alert('コピーに失敗しました。'); }
+        });
+    </script>
+</body>
+
+</html>
