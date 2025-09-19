@@ -243,35 +243,35 @@
 
         <div class="bar">
             <button id="generateButton" type="button">指示を生成する</button>
-            <button id="copyButton" type="button">集計をコピー</button>
+            <button class="copyButton" type="button">集計をコピー</button>
         </div>
     </section>
 
     <div id="questions-container"></div>
     <div class="hr"></div>
     <div id="output"></div>
-    <button id="copyButton" type="button">集計をコピー</button>
+    <button class="copyButton" type="button">集計をコピー</button>
 
     <script>
         // ====== データ（例） ======
         const data = {
             obj: [
-                { t: "電車", s: 1 },                 
-                { t: "バナナ", s: 1 }, 
+                { t: "電車", s: 1 },
+                { t: "バナナ", s: 1 },
                 { t: "コップ", s: 1 },
             ],
             order: [
-                { t: "指差して", s: 1 }, 
-                { t: "叩いて", s: 1 }, 
-                { t: "ふって", s: 1 }, 
-                { t: "ちょうだい", s: 1 }, 
-                { t: "なでなで", s: 1 }, 
-                { t: "持ってギュ", s: 1 },                
-                { t: "投げて", s: 1 },                                
-                { t: "食べて", s: 0 },                                                
-                { t: "まわして", s: 0 }, 
+                { t: "指差して", s: 1 },
+                { t: "叩いて", s: 1 },
+                { t: "ふって", s: 1 },
+                { t: "ちょうだい", s: 1 },
+                { t: "なでなで", s: 1 },
+                { t: "持ってギュ", s: 1 },
+                { t: "投げて", s: 1 },
+                { t: "食べて", s: 0 },
+                { t: "まわして", s: 0 },
                 { t: "ひっくり返して", s: 0 },
-                { t: "入れて", s: 0 },                
+                { t: "入れて", s: 0 },
             ]
         };
 
@@ -379,8 +379,18 @@
             wrap.className = 'buttons';
             const yes = document.createElement('button'); yes.textContent = '正';
             const no = document.createElement('button'); no.textContent = '誤';
-            yes.addEventListener('click', () => { answerLog.set(seq, { ...answerLog.get(seq), isCorrect: true }); setActiveButton(yes, no); updateSummary(); });
-            no.addEventListener('click', () => { answerLog.set(seq, { ...answerLog.get(seq), isCorrect: false }); setActiveButton(no, yes); updateSummary(); });
+            yes.addEventListener('click', () => { 
+                answerLog.set(seq, { ...answerLog.get(seq), isCorrect: true }); 
+                setActiveButton(yes, no); 
+                updateSummary(); 
+                copySummaryToClipboard();
+            });
+            no.addEventListener('click', () => { 
+                answerLog.set(seq, { ...answerLog.get(seq), isCorrect: false }); 
+                setActiveButton(no, yes); 
+                updateSummary(); 
+                copySummaryToClipboard();
+            });
             wrap.appendChild(yes); wrap.appendChild(no);
             return wrap;
         }
@@ -408,7 +418,7 @@
                 setBox.className = 'set';
                 const title = document.createElement('div');
                 title.className = 'title';
-                title.textContent = `セット ${s + 1}`;
+                title.textContent = `セット ${s + 1}: `;
                 setBox.appendChild(title);
 
                 // 択数分だけ物を抽出（強選択をやや優先 & 使用回数で公平化）
@@ -457,11 +467,31 @@
         }
 
         document.getElementById('generateButton').addEventListener('click', generateAndRender);
-        document.getElementById('copyButton').addEventListener('click', async () => {
+
+        function copySummary() {
             const text = document.getElementById('output').innerText || '';
-            try { await navigator.clipboard.writeText(text); alert('コピーしました。'); }
-            catch (e) { alert('コピーに失敗しました。'); }
+            navigator.clipboard.writeText(text).then(
+                () => alert('コピーしました。'),
+                () => alert('コピーに失敗しました。')
+            );
+        }
+
+        function copySummaryToClipboard() {
+            const text = document.getElementById('output').innerText || '';
+            navigator.clipboard.writeText(text).catch(e => {
+                console.error('コピーに失敗:', e);
+            });
+        }
+
+        document.querySelectorAll('.copyButton').forEach(btn => {
+            btn.addEventListener('click', copySummary);
         });
+
+        // document.getElementById('copyButton').addEventListener('click', async () => {
+        //     const text = document.getElementById('output').innerText || '';
+        //     try { await navigator.clipboard.writeText(text); alert('コピーしました。'); }
+        //     catch (e) { alert('コピーに失敗しました。'); }
+        // });
     </script>
 </body>
 

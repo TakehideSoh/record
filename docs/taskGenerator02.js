@@ -166,8 +166,8 @@ function weightedRandomChoiceBalanced(items, usageCounts) {
     // 使用回数が minUsage または minUsage+1 のものだけに限定
     let filteredItems = items
         .map((item, index) => ({ item, index, usage: usageCounts[item] || 0 }))
-        .filter(entry => entry.usage <= minUsage);        
-//        .filter(entry => entry.usage <= minUsage + 1);
+        .filter(entry => entry.usage <= minUsage);
+    //        .filter(entry => entry.usage <= minUsage + 1);
 
     // 使用回数が少ないほどやや高くなる重みを与える（±1以内なので偏りは小さい）
     let weightedItems = filteredItems.map(entry => {
@@ -205,62 +205,62 @@ function weightedRandomChoiceFair(items, usageCounts) {
 // ---------------------------------------------------
 // strongItems: 状態2, normalItems: 状態1
 function generateTask(strongItems, normalItems, choiceCount, repetitionCount, setCount) {
-  const totalUnique = new Set([...strongItems, ...normalItems]).size;
-  if (totalUnique < choiceCount) {
-    throw new Error("選択候補が択数より少ないため課題を作れません。");
-  }
-
-  // 各プールの局所的な出現回数バケット（セット間の偏り緩和）
-  const binsStrong = new Map();
-  const binsNormal = new Map();
-
-  // 出題インデックス用の全体使用回数（items名→回数）
-  const usageCounts = {};
-  [...strongItems, ...normalItems].forEach(it => usageCounts[it] = 0);
-
-  const sets = [];
-
-  for (let s = 0; s < setCount; s++) {
-    const needStrong = Math.min(Math.max(choiceCount - 1, 0), strongItems.length);
-    const pickedStrong = pickKWithFairness(strongItems, needStrong, binsStrong);
-
-    const remaining = choiceCount - pickedStrong.length;
-
-    // 残りは状態1から選ぶ。足りなければ未採用の状態2から補完
-    const normalPoolLeft = normalItems.filter(x => !pickedStrong.includes(x));
-    let pickedNormal = pickKWithFairness(normalPoolLeft, remaining, binsNormal);
-
-    let choices = pickedStrong.concat(pickedNormal);
-
-    if (choices.length < choiceCount) {
-      const strongLeft = strongItems.filter(x => !choices.includes(x));
-      const needMore = choiceCount - choices.length;
-      choices = choices.concat(strongLeft.slice(0, needMore));
+    const totalUnique = new Set([...strongItems, ...normalItems]).size;
+    if (totalUnique < choiceCount) {
+        throw new Error("選択候補が択数より少ないため課題を作れません。");
     }
 
-    // 念のため重複除去（起こらない想定だが保険）
-    choices = Array.from(new Set(choices));
-    if (choices.length !== choiceCount) {
-      // まだ足りなければ全体から埋める
-      const allPool = [...new Set([...strongItems, ...normalItems])];
-      const fill = allPool.filter(x => !choices.includes(x)).slice(0, choiceCount - choices.length);
-      choices = choices.concat(fill);
+    // 各プールの局所的な出現回数バケット（セット間の偏り緩和）
+    const binsStrong = new Map();
+    const binsNormal = new Map();
+
+    // 出題インデックス用の全体使用回数（items名→回数）
+    const usageCounts = {};
+    [...strongItems, ...normalItems].forEach(it => usageCounts[it] = 0);
+
+    const sets = [];
+
+    for (let s = 0; s < setCount; s++) {
+        const needStrong = Math.min(Math.max(choiceCount - 1, 0), strongItems.length);
+        const pickedStrong = pickKWithFairness(strongItems, needStrong, binsStrong);
+
+        const remaining = choiceCount - pickedStrong.length;
+
+        // 残りは状態1から選ぶ。足りなければ未採用の状態2から補完
+        const normalPoolLeft = normalItems.filter(x => !pickedStrong.includes(x));
+        let pickedNormal = pickKWithFairness(normalPoolLeft, remaining, binsNormal);
+
+        let choices = pickedStrong.concat(pickedNormal);
+
+        if (choices.length < choiceCount) {
+            const strongLeft = strongItems.filter(x => !choices.includes(x));
+            const needMore = choiceCount - choices.length;
+            choices = choices.concat(strongLeft.slice(0, needMore));
+        }
+
+        // 念のため重複除去（起こらない想定だが保険）
+        choices = Array.from(new Set(choices));
+        if (choices.length !== choiceCount) {
+            // まだ足りなければ全体から埋める
+            const allPool = [...new Set([...strongItems, ...normalItems])];
+            const fill = allPool.filter(x => !choices.includes(x)).slice(0, choiceCount - choices.length);
+            choices = choices.concat(fill);
+        }
+
+        shuffleInPlace(choices);
+
+        // repetition ごとに「どれを正解にするか」をバランス良く選ぶ
+        const questions = [];
+        for (let r = 0; r < repetitionCount; r++) {
+            const qIndex = weightedRandomChoiceBalanced(choices, usageCounts);
+            questions.push(qIndex);
+            usageCounts[choices[qIndex]]++;
+        }
+
+        sets.push({ choices, questions });
     }
 
-    shuffleInPlace(choices);
-
-    // repetition ごとに「どれを正解にするか」をバランス良く選ぶ
-    const questions = [];
-    for (let r = 0; r < repetitionCount; r++) {
-      const qIndex = weightedRandomChoiceBalanced(choices, usageCounts);
-      questions.push(qIndex);
-      usageCounts[choices[qIndex]]++;
-    }
-
-    sets.push({ choices, questions });
-  }
-
-  return sets;
+    return sets;
 }
 
 // function generateTask(selectedItems, choiceCount, repetitionCount, setCount) {
@@ -337,6 +337,8 @@ function createYesNoButton(scroll_length, questionText, choices, question, setIn
         recordAnswer(choices, question, setIndex, repetitionIndex, true);
 
         setActiveButton(yesButton, noButton); // Yesボタンをアクティブに
+
+        copySummaryToClipboard();        
         window.scrollBy({
             top: scroll_length, // 下にスクロール
             left: 0,
@@ -353,6 +355,8 @@ function createYesNoButton(scroll_length, questionText, choices, question, setIn
         recordAnswer(choices, question, setIndex, repetitionIndex, false);
 
         setActiveButton(noButton, yesButton); // Noボタンをアクティブに
+
+        copySummaryToClipboard();
         window.scrollBy({
             top: scroll_length, // 下にスクロール
             left: 0,
@@ -400,25 +404,25 @@ function createQuestionContent(choices, question, setIndex, repetitionIndex, rep
 // ---------------------------------------------------
 
 function createTaskContent(choiceCount, repetitionCount, setCount) {
-  const { strong, normal } = getPoolsFromCurrentGroup();  // ← 追加
-  const tasks = generateTask(strong, normal, choiceCount, repetitionCount, setCount); // ← 変更
+    const { strong, normal } = getPoolsFromCurrentGroup();  // ← 追加
+    const tasks = generateTask(strong, normal, choiceCount, repetitionCount, setCount); // ← 変更
 
-  const container = document.getElementById("questions-container");
-  container.innerHTML = "";
+    const container = document.getElementById("questions-container");
+    container.innerHTML = "";
 
-  let setIndex = 0;
-  tasks.forEach(task => {
-    let repetitionIndex = 0;
-    const { choices, questions } = task;
+    let setIndex = 0;
+    tasks.forEach(task => {
+        let repetitionIndex = 0;
+        const { choices, questions } = task;
 
-    questions.forEach(question => {
-      const qdiv = createQuestionContent(choices, question, setIndex, repetitionIndex, repetitionCount);
-      container.appendChild(qdiv);
-      repetitionIndex++;
+        questions.forEach(question => {
+            const qdiv = createQuestionContent(choices, question, setIndex, repetitionIndex, repetitionCount);
+            container.appendChild(qdiv);
+            repetitionIndex++;
+        });
+
+        setIndex++;
     });
-
-    setIndex++;
-  });
 }
 
 // ---------------------------------------------------
@@ -454,35 +458,35 @@ document.getElementById('generateTaskButton').addEventListener('click', function
 // ---------------------------------------------------
 // 既存の groups/currentGroup/ensureState は前段の3状態UI側にある前提
 function getPoolsFromCurrentGroup() {
-  const strong = [];
-  const normal = [];
-  uiGroups[currentGroup].forEach(o => {
-    const s = typeof o.s === 'number' ? o.s : (o.c ? 1 : 0);
-    if (s === 2) strong.push(o.t);
-    else if (s === 1) normal.push(o.t);
-  });
-  return { strong, normal, all: strong.concat(normal) };
+    const strong = [];
+    const normal = [];
+    uiGroups[currentGroup].forEach(o => {
+        const s = typeof o.s === 'number' ? o.s : (o.c ? 1 : 0);
+        if (s === 2) strong.push(o.t);
+        else if (s === 1) normal.push(o.t);
+    });
+    return { strong, normal, all: strong.concat(normal) };
 }
 
 function shuffleInPlace(a) {
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
 }
 
 // 使用回数に基づいて均等に K 個選ぶ（同率はランダム）
 function pickKWithFairness(pool, k, bins) {
-  if (k <= 0) return [];
-  pool.forEach(it => { if (!bins.has(it)) bins.set(it, 0); });
-  const sorted = pool
-    .map(it => ({ it, use: bins.get(it), rand: Math.random() }))
-    .sort((a, b) => (a.use - b.use) || (a.rand - b.rand))
-    .map(x => x.it);
-  const picked = sorted.slice(0, Math.min(k, sorted.length));
-  picked.forEach(it => bins.set(it, bins.get(it) + 1));
-  return picked;
+    if (k <= 0) return [];
+    pool.forEach(it => { if (!bins.has(it)) bins.set(it, 0); });
+    const sorted = pool
+        .map(it => ({ it, use: bins.get(it), rand: Math.random() }))
+        .sort((a, b) => (a.use - b.use) || (a.rand - b.rand))
+        .map(x => x.it);
+    const picked = sorted.slice(0, Math.min(k, sorted.length));
+    picked.forEach(it => bins.set(it, bins.get(it) + 1));
+    return picked;
 }
 
 // ---------------------------------------------------
@@ -512,3 +516,11 @@ let currentVisibleGroupId = 'group1'; // 初期表示グループ
 window.addEventListener("DOMContentLoaded", () => {
     showGroup(currentVisibleGroupId);
 });
+
+
+function copySummaryToClipboard() {
+    const text = document.getElementById('output').innerText || '';
+    navigator.clipboard.writeText(text).catch(e => {
+        console.error('コピーに失敗:', e);
+    });
+}

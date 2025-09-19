@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>受容的命名．配列→ボタン生成版（3段階トグル）</title>
     <link rel="stylesheet" href="default.css">
-    <link rel="stylesheet" href="labeling.css">    
+    <link rel="stylesheet" href="labeling.css">
 </head>
 
 <body>
     <h1>受容的命名</h1>
+    <div id="counts"></div>
+
 
     <!-- グループ切り替え -->
     <div class="groups" role="tablist" aria-label="グループ切り替え">
@@ -79,13 +81,14 @@
 
     <div class="bar">
         <button id="generateTaskButton" type="button">チェックした物で課題を生成する</button>
-        <button id="copyButton" type="button">クリップボードにコピー</button>
     </div>
 
     <div id="dist"></div>
     <div id="questions-container"></div>
     <div class="hr"></div>
     <div id="output"></div>
+
+    <button id="copyButton" type="button">クリップボードにコピー</button>
 
     <!-- 3状態UIの最小限スクリプト（データと描画のみ） -->
     <script>
@@ -98,16 +101,16 @@
                 { t: "しまうま", s: 0 },
                 { t: "がおー", s: 1 },
                 { t: "ぱおーん", s: 1 },
-                { t: "もーもー", s: 1 },                
-                { t: "うっほっほ", s: 1 },                
+                { t: "もーもー", s: 1 },
+                { t: "うっほっほ", s: 1 },
                 { t: "はとぽっぽ", s: 0 },
-                { t: "めぇー", s: 0 },                
-                { t: "とら", s: 0 },                
-                { t: "ぶーぶー", s: 0 },                                
-                { t: "さい", s: 0 },                                                
-                { t: "パンダ", s: 0 },                                                                
-                { t: "かめ", s: 0 },                                                                                
-                { t: "くま", s: 0 },                                                                                                
+                { t: "めぇー", s: 0 },
+                { t: "とら", s: 0 },
+                { t: "ぶーぶー", s: 0 },
+                { t: "さい", s: 0 },
+                { t: "パンダ", s: 0 },
+                { t: "かめ", s: 0 },
+                { t: "くま", s: 0 },
                 //    
                 { t: "電車", s: 1 },
                 { t: "ひこうき", s: 1 },
@@ -126,10 +129,10 @@
                 { t: "いちご", s: 0 },
                 { t: "ヨーグルト", s: 0 },
                 { t: "パン", s: 0 },
-                { t: "きゅうり", s: 0 },                
-                { t: "かぼちゃ", s: 0 },                                
-                { t: "ぶどう", s: 0 },                                                
-                { t: "とまと", s: 0 },                                                                
+                { t: "きゅうり", s: 0 },
+                { t: "かぼちゃ", s: 0 },
+                { t: "ぶどう", s: 0 },
+                { t: "とまと", s: 0 },
                 //
                 { t: "コップ", s: 1 },
                 { t: "歯ブラシ", s: 1 },
@@ -141,9 +144,9 @@
                 { t: "ボール", s: 0 },
                 { t: "おむつ", s: 0 },
                 { t: "くつ", s: 0 },
-                { t: "とけい", s: 0 },                
-                { t: "しんごう", s: 0 },                                
-                { t: "ティッシュ", s: 0 },                                                
+                { t: "とけい", s: 0 },
+                { t: "しんごう", s: 0 },
+                { t: "ティッシュ", s: 0 },
                 //
                 { t: "ショーン", s: 0 },
                 { t: "ビッツァー", s: 0 },
@@ -156,27 +159,56 @@
 
             ],
             group2: [
-                { t: 'いち', s: 1 }, { t: 'に', s: 1 }, { t: 'さん', s: 1 }, { t: 'よん', s: 1 }
+                { t: 'いち', s: 1 },
+                { t: 'に', s: 1 },
+                { t: 'さん', s: 1 },
+                { t: 'よん', s: 1 }
             ],
             group3: [
-                { t: 'まま', s: 1 }, { t: 'ねね', s: 1 }, { t: 'ぱぱ', s: 1 }, { t: 'ジョージ', s: 0 },
-                { t: 'ピングー', s: 0 }, { t: 'ショーン', s: 0 }, { t: 'ビッツァー', s: 0 }
+                { t: 'まま', s: 1 },
+                { t: 'ねね', s: 1 },
+                { t: 'ぱぱ', s: 1 },
+                { t: 'ジョージ', s: 0 },
+                { t: 'ピングー', s: 0 },
+                { t: 'ショーン', s: 0 },
+                { t: 'ビッツァー', s: 0 }
             ],
             group4: [
-                { t: 'あ', s: 1 }, { t: 'い', s: 1 }, { t: 'う', s: 1 }, { t: 'え', s: 1 }
+                { t: 'あ', s: 1 },
+                { t: 'い', s: 1 },
+                { t: 'う', s: 1 },
+                { t: 'え', s: 1 }
             ],
             group5: [
-                { t: 'あか', s: 1 }, { t: 'きいろ', s: 1 }, { t: 'あお', s: 1 }, { t: 'みどり', s: 1 }, { t: 'ピンク', s: 1 }
+                { t: 'あか', s: 1 },
+                { t: 'きいろ', s: 1 },
+                { t: 'あお', s: 1 },
+                { t: 'みどり', s: 1 },
+                { t: 'ピンク', s: 1 }
             ],
             group6: [
-                { t: 'まる', s: 1 }, { t: 'さんかく', s: 1 }, { t: 'しかく', s: 1 }
+                { t: 'まる', s: 1 },
+                { t: 'さんかく', s: 1 },
+                { t: 'しかく', s: 1 }
             ],
             group7: [
-                { t: 'だっこ', s: 1 }, { t: 'ごしごし', s: 1 }, { t: 'てれび', s: 1 }, { t: 'お風呂', s: 1 },
-                { t: 'いただきます', s: 1 }, { t: 'ねんね', s: 1 }, { t: 'ぼーる', s: 1 }, { t: 'ふきふき', s: 1 },
-                { t: 'えほん', s: 1 }, { t: 'ちょきちょき', s: 1 }, { t: 'ばんざい', s: 1 }, { t: 'ごくごく', s: 1 }, { t: 'しゃかしゃか', s: 1 }
+                { t: 'だっこ', s: 1 },
+                { t: 'ごしごし', s: 1 },
+                { t: 'てれび', s: 1 },
+                { t: 'お風呂', s: 1 },
+                { t: 'いただきます', s: 1 },
+                { t: 'ねんね', s: 1 },
+                { t: 'ぼーる', s: 1 },
+                { t: 'ふきふき', s: 1 },
+                { t: 'えほん', s: 1 },
+                { t: 'ちょきちょき', s: 1 },
+                { t: 'ばんざい', s: 1 },
+                { t: 'ごくごく', s: 1 },
+                { t: 'しゃかしゃか', s: 1 }
             ]
         };
+
+        const allElements = Object.values(uiGroups).flat();
 
         let currentGroup = 'group1';
 
@@ -221,7 +253,25 @@
             document.querySelectorAll('.checkbox-group').forEach(g => g.style.display = (g.id === key ? 'block' : 'none'));
             // 3状態ボタンを再描画
             renderButtonsForGroup(key);
+
+
         }
+
+        const countsDiv = document.getElementById('counts');
+
+        Object.entries(uiGroups).forEach(([groupName, items]) => {
+            const p = document.createElement('p');
+            p.textContent = `${groupName}: ${items.length}`;
+            //   countsDiv.appendChild(p);
+        });
+
+        // 合計件数を表示
+        const total = Object.values(uiGroups).flat().length;
+        const totalP = document.createElement('p');
+        totalP.textContent = `全アイテム数: ${total}`;
+        totalP.style.fontWeight = 'bold'; // 少し目立たせる
+        countsDiv.appendChild(totalP);
+
 
     </script>
 
