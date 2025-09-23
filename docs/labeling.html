@@ -43,8 +43,8 @@
         <div class="control">
             <label for="choiceCount">択数</label>
             <select id="choiceCount">
-                <option value="2" selected>2</option>
-                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
                 <option value="4">4</option>
                 <option value="5">5</option>
             </select>
@@ -53,9 +53,9 @@
             <label for="repetitionCount">レップ数</label>
             <select id="repetitionCount">
                 <option value="1">1</option>
-                <option value="2">2</option>
+                <option value="2 selected">2</option>
                 <option value="3">3</option>
-                <option value="4" selected>4</option>
+                <option value="4">4</option>
                 <option value="5">5</option>
                 <option value="6">6</option>
                 <option value="7">7</option>
@@ -97,7 +97,7 @@
             group1: [
                 { t: "サイ", s: 0 },
                 { t: "パンダ", s: 0 },
-                { t: "キリン", s: 1 },
+                { t: "キリン", s: 0 },
                 { t: "ペンギン", s: 0 },
                 { t: "しまうま", s: 0 },
                 { t: "がおー", s: 1 },
@@ -125,7 +125,7 @@
                 { t: "ちょうちょ", s: 0 },
                 //
                 { t: "バナナ", s: 1 },
-                { t: "りんご", s: 0 },
+                { t: "りんご", s: 1 },
                 { t: "みかん", s: 0 },
                 { t: "いちご", s: 0 },
                 { t: "ヨーグルト", s: 0 },
@@ -293,11 +293,6 @@
 
         const countsDiv = document.getElementById('counts');
 
-        Object.entries(uiGroups).forEach(([groupName, items]) => {
-            const p = document.createElement('p');
-            p.textContent = `${groupName}: ${items.length}`;
-            //   countsDiv.appendChild(p);
-        });
 
         // 合計件数を表示
         const total = Object.values(uiGroups).flat().length;
@@ -305,6 +300,13 @@
         totalP.textContent = `全アイテム数: ${total}`;
         totalP.style.fontWeight = 'bold'; // 少し目立たせる
         countsDiv.appendChild(totalP);
+
+        Object.entries(uiGroups).forEach(([groupName, items]) => {
+            const p = document.createElement('p');
+            p.textContent = `${groupName}: ${items.length}`;
+            //   countsDiv.appendChild(p);
+        });
+
 
 
     </script>
