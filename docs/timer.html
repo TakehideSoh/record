@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タイマー</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #1a1a2e;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+        }
+        .timer-circle {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 40px;
+        }
+        .circle-bg {
+            fill: #2d2d44;
+        }
+        .pie-progress {
+            fill: #4ecdc4;
+        }
+        .timer-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .roller-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .roller-wrapper label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .roller-container {
+            position: relative;
+            height: 150px;
+            width: 70px;
+            overflow: hidden;
+            background: #16213e;
+            border-radius: 12px;
+            border: 2px solid #2d2d44;
+        }
+        .roller-container::before,
+        .roller-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 55px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .roller-container::before {
+            top: 0;
+            background: linear-gradient(to bottom, #16213e 0%, transparent 100%);
+        }
+        .roller-container::after {
+            bottom: 0;
+            background: linear-gradient(to top, #16213e 0%, transparent 100%);
+        }
+        .roller-highlight {
+            position: absolute;
+            top: 50%;
+            left: 4px;
+            right: 4px;
+            height: 40px;
+            transform: translateY(-50%);
+            background: #2d2d44;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+        .roller {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            transition: transform 0.1s ease-out;
+        }
+        .roller-item {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #888;
+            cursor: pointer;
+            user-select: none;
+        }
+        .roller-item.selected {
+            color: #fff;
+        }
+        .separator {
+            font-size: 36px;
+            color: #888;
+            padding: 0 5px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            min-width: 60px;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-start {
+            background: #4ecdc4;
+            color: #1a1a2e;
+        }
+        .btn-stop {
+            background: #ff6b6b;
+            color: #fff;
+            font-size: 16px;
+        }
+        .btn-reset {
+            background: #2d2d44;
+            color: #fff;
+        }
+        .toggle-group {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toggle-label {
+            font-size: 14px;
+            color: #888;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #2d2d44;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active {
+            background: #4ecdc4;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="timer-circle">
+            <svg width="300" height="300">
+                <circle class="circle-bg" cx="150" cy="150" r="140"></circle>
+                <path class="pie-progress" d=""></path>
+            </svg>
+            <div class="timer-display">00:00</div>
+        </div>
+
+        <div class="input-group">
+            <div class="roller-wrapper">
+                <label>分</label>
+                <div class="roller-container" id="minutesRoller">
+                    <div class="roller-highlight"></div>
+                    <div class="roller" id="minutesRollerInner"></div>
+                </div>
+            </div>
+            <div class="separator">:</div>
+            <div class="roller-wrapper">
+                <label>秒</label>
+                <div class="roller-container" id="secondsRoller">
+                    <div class="roller-highlight"></div>
+                    <div class="roller" id="secondsRollerInner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-start" id="startBtn">&#9658;</button>
+            <button class="btn-stop" id="stopBtn" disabled>&#10074;&#10074;</button>
+            <button class="btn-reset" id="resetBtn">&#8634;</button>
+        </div>
+
+        <div class="toggle-group">
+            <div class="toggle-wrapper">
+                <span class="toggle-label">チクタク音</span>
+                <div class="toggle-switch active" id="tickToggle"></div>
+            </div>
+            <div class="toggle-wrapper">
+                <span class="toggle-label">終了音</span>
+                <div class="toggle-switch active" id="alarmToggle"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const timerDisplay = document.querySelector('.timer-display');
+        const pieProgress = document.querySelector('.pie-progress');
+        const tickToggle = document.getElementById('tickToggle');
+        const alarmToggle = document.getElementById('alarmToggle');
+
+        let tickEnabled = true;
+        let alarmEnabled = true;
+
+        tickToggle.addEventListener('click', () => {
+            tickEnabled = !tickEnabled;
+            tickToggle.classList.toggle('active', tickEnabled);
+        });
+
+        alarmToggle.addEventListener('click', () => {
+            alarmEnabled = !alarmEnabled;
+            alarmToggle.classList.toggle('active', alarmEnabled);
+        });
+
+        // ローラー設定
+        const ITEM_HEIGHT = 40;
+        const VISIBLE_ITEMS = 3;
+        const OFFSET = Math.floor(VISIBLE_ITEMS / 2) * ITEM_HEIGHT + (150 - VISIBLE_ITEMS * ITEM_HEIGHT) / 2;
+
+        class Roller {
+            constructor(container, inner, values, initialValue = 0) {
+                this.container = container;
+                this.inner = inner;
+                this.values = values;
+                this.selectedIndex = values.indexOf(initialValue);
+                if (this.selectedIndex === -1) this.selectedIndex = 0;
+                this.disabled = false;
+
+                this.init();
+                this.bindEvents();
+            }
+
+            init() {
+                this.inner.innerHTML = '';
+                this.values.forEach((val, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'roller-item';
+                    item.textContent = String(val).padStart(2, '0');
+                    item.dataset.index = index;
+                    this.inner.appendChild(item);
+                });
+                this.updatePosition(false);
+            }
+
+            updatePosition(animate = true) {
+                const y = OFFSET - this.selectedIndex * ITEM_HEIGHT;
+                this.inner.style.transition = animate ? 'transform 0.2s ease-out' : 'none';
+                this.inner.style.transform = `translateY(${y}px)`;
+
+                this.inner.querySelectorAll('.roller-item').forEach((item, index) => {
+                    item.classList.toggle('selected', index === this.selectedIndex);
+                });
+            }
+
+            getValue() {
+                return this.values[this.selectedIndex];
+            }
+
+            setValue(val) {
+                const index = this.values.indexOf(val);
+                if (index !== -1) {
+                    this.selectedIndex = index;
+                    this.updatePosition();
+                }
+            }
+
+            setDisabled(disabled) {
+                this.disabled = disabled;
+                this.container.style.opacity = disabled ? 0.5 : 1;
+                this.container.style.pointerEvents = disabled ? 'none' : 'auto';
+            }
+
+            bindEvents() {
+                let startY = 0;
+                let startIndex = 0;
+                let isDragging = false;
+
+                const handleStart = (e) => {
+                    if (this.disabled) return;
+                    isDragging = true;
+                    startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                    startIndex = this.selectedIndex;
+                    this.inner.style.transition = 'none';
+                };
+
+                const handleMove = (e) => {
+                    if (!isDragging || this.disabled) return;
+                    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                    const deltaY = currentY - startY;
+                    const deltaIndex = Math.round(-deltaY / ITEM_HEIGHT);
+                    let newIndex = startIndex + deltaIndex;
+                    newIndex = Math.max(0, Math.min(this.values.length - 1, newIndex));
+
+                    const y = OFFSET - startIndex * ITEM_HEIGHT + deltaY;
+                    this.inner.style.transform = `translateY(${y}px)`;
+                };
+
+                const handleEnd = (e) => {
+                    if (!isDragging || this.disabled) return;
+                    isDragging = false;
+                    const currentY = e.type === 'touchend' ? e.changedTouches[0].clientY : e.clientY;
+                    const deltaY = currentY - startY;
+                    const deltaIndex = Math.round(-deltaY / ITEM_HEIGHT);
+                    this.selectedIndex = startIndex + deltaIndex;
+                    this.selectedIndex = Math.max(0, Math.min(this.values.length - 1, this.selectedIndex));
+                    this.updatePosition();
+                };
+
+                this.container.addEventListener('mousedown', handleStart);
+                this.container.addEventListener('touchstart', handleStart, { passive: true });
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('touchmove', handleMove, { passive: true });
+                document.addEventListener('mouseup', handleEnd);
+                document.addEventListener('touchend', handleEnd);
+
+                this.container.addEventListener('wheel', (e) => {
+                    if (this.disabled) return;
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 1 : -1;
+                    this.selectedIndex = Math.max(0, Math.min(this.values.length - 1, this.selectedIndex + delta));
+                    this.updatePosition();
+                }, { passive: false });
+
+                this.inner.addEventListener('click', (e) => {
+                    if (this.disabled) return;
+                    const item = e.target.closest('.roller-item');
+                    if (item) {
+                        this.selectedIndex = parseInt(item.dataset.index);
+                        this.updatePosition();
+                    }
+                });
+            }
+        }
+
+        const minuteValues = Array.from({ length: 100 }, (_, i) => i);
+        const secondValues = Array.from({ length: 12 }, (_, i) => i * 5);
+
+        const minutesRoller = new Roller(
+            document.getElementById('minutesRoller'),
+            document.getElementById('minutesRollerInner'),
+            minuteValues,
+            0
+        );
+
+        const secondsRoller = new Roller(
+            document.getElementById('secondsRoller'),
+            document.getElementById('secondsRollerInner'),
+            secondValues,
+            0
+        );
+
+        const cx = 150;
+        const cy = 150;
+        const radius = 140;
+
+        function getPiePath(progress) {
+            if (progress <= 0) return '';
+            if (progress >= 1) {
+                return `M ${cx} ${cy} m -${radius} 0 a ${radius} ${radius} 0 1 1 ${radius * 2} 0 a ${radius} ${radius} 0 1 1 -${radius * 2} 0`;
+            }
+
+            const angle = progress * 360;
+            const rad = (angle - 90) * Math.PI / 180;
+            const x = cx + radius * Math.cos(rad);
+            const y = cy + radius * Math.sin(rad);
+            const largeArc = angle > 180 ? 1 : 0;
+
+            return `M ${cx} ${cy} L ${cx} ${cy - radius} A ${radius} ${radius} 0 ${largeArc} 1 ${x} ${y} Z`;
+        }
+
+        let totalSeconds = 0;
+        let remainingSeconds = 0;
+        let timerInterval = null;
+        let isRunning = false;
+
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioCtx;
+        }
+
+        function playTick() {
+            if (!tickEnabled) return;
+
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+            const duration = 0.015;
+
+            // ノイズバッファを作成（クリック感）
+            const bufferSize = ctx.sampleRate * duration;
+            const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const noiseData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                noiseData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+            }
+
+            const noiseSource = ctx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+
+            // フィルターで高周波をカット（柔らかい音に）
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 2000;
+            filter.Q.value = 1;
+
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.3, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            noiseSource.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(ctx.destination);
+
+            // 低いトーンを追加（深み）
+            const osc = ctx.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1800, now);
+            osc.frequency.exponentialRampToValueAtTime(600, now + duration);
+
+            const oscGain = ctx.createGain();
+            oscGain.gain.setValueAtTime(0.15, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc.connect(oscGain);
+            oscGain.connect(ctx.destination);
+
+            noiseSource.start(now);
+            noiseSource.stop(now + duration);
+            osc.start(now);
+            osc.stop(now + duration);
+        }
+
+        function playAlarm() {
+            if (!alarmEnabled) return;
+
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+            const beepCount = 3;
+
+            for (let i = 0; i < beepCount; i++) {
+                const startTime = now + i * 0.4;
+                const duration = 0.25;
+
+                // メイン周波数（ベル音の基音）
+                const frequencies = [880, 1108.73, 1318.51]; // A5, C#6, E6 (Aメジャー)
+
+                frequencies.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+
+                    const gain = ctx.createGain();
+                    const volume = 0.15 / (idx + 1); // 高い倍音は小さく
+                    gain.gain.setValueAtTime(volume, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start(startTime);
+                    osc.stop(startTime + duration);
+                });
+
+                // アタック音（金属的な響き）
+                const noiseLen = 0.02;
+                const bufferSize = ctx.sampleRate * noiseLen;
+                const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const noiseData = noiseBuffer.getChannelData(0);
+                for (let j = 0; j < bufferSize; j++) {
+                    noiseData[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufferSize * 0.2));
+                }
+
+                const noiseSource = ctx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 3000;
+
+                const noiseGain = ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.2, startTime);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + noiseLen);
+
+                noiseSource.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(ctx.destination);
+
+                noiseSource.start(startTime);
+                noiseSource.stop(startTime + noiseLen);
+            }
+        }
+
+        function updateDisplay() {
+            const mins = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            const progress = totalSeconds > 0 ? (totalSeconds - remainingSeconds) / totalSeconds : 0;
+            pieProgress.setAttribute('d', getPiePath(progress));
+        }
+
+        function startTimer() {
+            if (!isRunning) {
+                if (remainingSeconds === 0) {
+                    const mins = minutesRoller.getValue();
+                    const secs = secondsRoller.getValue();
+                    totalSeconds = mins * 60 + secs;
+                    remainingSeconds = totalSeconds;
+                }
+
+                if (remainingSeconds <= 0) return;
+
+                pieProgress.style.fill = '#4ecdc4';
+                isRunning = true;
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                minutesRoller.setDisabled(true);
+                secondsRoller.setDisabled(true);
+
+                playTick();
+                timerInterval = setInterval(() => {
+                    remainingSeconds--;
+                    updateDisplay();
+
+                    if (remainingSeconds > 0) {
+                        playTick();
+                    }
+
+                    if (remainingSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        startBtn.disabled = false;
+                        stopBtn.disabled = true;
+                        pieProgress.style.fill = '#ff6b6b';
+                        playAlarm();
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            totalSeconds = 0;
+            remainingSeconds = 0;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            minutesRoller.setDisabled(false);
+            secondsRoller.setDisabled(false);
+            pieProgress.style.fill = '#4ecdc4';
+            updateDisplay();
+        }
+
+        startBtn.addEventListener('click', startTimer);
+        stopBtn.addEventListener('click', stopTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        updateDisplay();
+    </script>
+</body>
+</html>
